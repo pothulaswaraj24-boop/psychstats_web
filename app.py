@@ -202,7 +202,7 @@ def index():
                     t, p = stats.ttest_ind(g1, g2)
                     result = f"T={t:.3f}, p={p:.4f}"
                     
-                    plt.figure()
+                    plt.figure(figsize=(6,4))
                     plt.bar([col1, col2], [g1.mean(), g2.mean()])
                     filename = os.path.join(app.config["UPLOAD_FOLDER"], f"ttest_{time.time()}.png")
                     plt.savefig(filename)
@@ -244,7 +244,7 @@ def index():
                     result = f"r={r:.3f}, p={p:.4f}"
                     
                     
-                    plt.figure()
+                    plt.figure(figsize=(6,4))
                     plt.scatter(x, y)
                     filename = os.path.join(app.config["UPLOAD_FOLDER"], f"ttest_{time.time()}.png")
                     plt.savefig(filename)
@@ -286,7 +286,7 @@ def index():
                     f, p = stats.f_oneway(*groups)
                     result = f"F={f:.3f}, p={p:.4f}"
 
-                    plt.figure()
+                    plt.figure(figsize=(6,4))
                     means = [g.mean() for g in groups]
                     plt.bar(valid_cols, means)
                     filename = os.path.join(app.config["UPLOAD_FOLDER"], f"ttest_{time.time()}.png")
