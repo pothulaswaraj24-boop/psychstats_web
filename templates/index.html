@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html>
-<div style="padding:20px;">
+
 <head>
 
     <title>PsychStats Web App</title>
@@ -32,10 +32,10 @@
     </style>
 
 </head>
-</div>
+
 <body>
 
-
+<div style="padding:20px;">
 <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 20px; background:#222; color:white;">
   
     
@@ -152,6 +152,7 @@
     </div>
     {% endif %}
     </div>
+<p>Graph path: {{ graph }}</p>
 
 </div>
 
@@ -162,6 +163,6 @@
 </div>
 
 <a href="/download" class="btn btn-warning mt-3">Download PDF</a>
-
+</div>
 </body>
 </html>
