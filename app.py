@@ -10,11 +10,22 @@ import matplotlib
 matplotlib.use('Agg')
 import glob
 
-
+from models import db, User
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
+app.config['SECRET_KEY'] = 'secret123'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+
+db.init_app(app)
+bcrypt = Bcrypt(app)
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = "login"
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_FOLDER = os.path.join(BASE_DIR, "static")
@@ -39,7 +50,64 @@ def clean_static_folder(folder="static", max_age_seconds=300):
                 except:
                     pass
 
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        hashed = bcrypt.generate_password_hash(password).decode('utf-8')
+
+        user = User(username=username, password=hashed)
+        db.session.add(user)
+        db.session.commit()
+
+        return "Registered successfully! Go to login."
+
+    return render_template("register.html")
+
+@app.route("/login", methods=["GET", "POST"])
+def login():
+    if request.method == "POST":
+        username = request.form.get("username")
+        password = request.form.get("password")
+
+        user = User.query.filter_by(username=username).first()
+
+        if user and bcrypt.check_password_hash(user.password, password):
+
+            current_ip = request.remote_addr
+            current_agent = request.headers.get('User-Agent')
+
+            # First login → save device
+            if not user.ip_address:
+                user.ip_address = current_ip
+                user.user_agent = current_agent
+                db.session.commit()
+
+            # Block if different device
+            elif user.ip_address != current_ip or user.user_agent != current_agent:
+                return "⚠️ This account is already used on another device!"
+
+            login_user(user)
+            return "Login successful!"
+
+        return "Invalid credentials"
+
+    return render_template("login.html")
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return "Logged out"
+
 @app.route("/", methods=["GET", "POST"])
+@login_required
 def index():
     result = ""
     graph_path = ""
@@ -277,7 +345,8 @@ def download_pdf():
 
     return f'<a href="/{file_path}" download>Click here to download PDF</a>'
 
-
+with app.app_context():
+    db.create_all()
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
