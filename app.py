@@ -15,9 +15,14 @@ import glob
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
-UPLOAD_FOLDER = "static"
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+UPLOAD_FOLDER = os.path.join(BASE_DIR, "static")
+
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
+# ✅ CREATE FOLDER IF NOT EXISTS
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 
 
