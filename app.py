@@ -1,5 +1,6 @@
 from flask import Flask, render_template, request, session
 from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash
 import pandas as pd
 from scipy import stats
 import matplotlib.pyplot as plt
@@ -13,7 +14,6 @@ import glob
 
 from models import db, User
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
-from flask_bcrypt import Bcrypt
 
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
@@ -22,7 +22,6 @@ app.config['SECRET_KEY'] = 'secret123'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
 
 db.init_app(app)
-bcrypt = Bcrypt(app)
 
 login_manager = LoginManager()
 login_manager.init_app(app)
@@ -61,7 +60,7 @@ def register():
         username = request.form.get("username")
         password = request.form.get("password")
 
-        hashed = bcrypt.generate_password_hash(password).decode('utf-8')
+        hashed = generate_password_hash(password)
 
         user = User(username=username, password=hashed)
         db.session.add(user)
@@ -71,6 +70,9 @@ def register():
 
     return render_template("register.html")
 
+
+
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
@@ -79,27 +81,25 @@ def login():
 
         user = User.query.filter_by(username=username).first()
 
-        if user and bcrypt.check_password_hash(user.password, password):
+        if user and check_password_hash(user.password, password):
 
-            current_ip = request.remote_addr
             current_agent = request.headers.get('User-Agent')
 
-            # First login → save device
-            if not user.ip_address:
-                user.ip_address = current_ip
+            if not user.user_agent:
                 user.user_agent = current_agent
                 db.session.commit()
 
-            # Block if different device
-            elif user.ip_address != current_ip or user.user_agent != current_agent:
+            elif user.user_agent != current_agent:
                 return "⚠️ This account is already used on another device!"
 
             login_user(user)
             return "Login successful!"
 
-        return "Invalid credentials"
+        else:
+            return "Invalid credentials"
 
     return render_template("login.html")
+
 
 @app.route("/logout")
 @login_required
@@ -203,7 +203,7 @@ def index():
                     
                     plt.figure()
                     plt.bar([col1, col2], [g1.mean(), g2.mean()])
-                    filename = f"static/ttest_{time.time()}.png"
+                    filename = os.path.join(app.config["UPLOAD_FOLDER"], f"ttest_{time.time()}.png")
                     plt.savefig(filename)
                     plt.clf()
                     plt.close()
@@ -245,7 +245,7 @@ def index():
                     
                     plt.figure()
                     plt.scatter(x, y)
-                    filename = f"static/corr_{time.time()}.png"
+                    filename = os.path.join(app.config["UPLOAD_FOLDER"], f"ttest_{time.time()}.png")
                     plt.savefig(filename)
                     plt.clf()
                     plt.close()
@@ -288,7 +288,7 @@ def index():
                     plt.figure()
                     means = [g.mean() for g in groups]
                     plt.bar(valid_cols, means)
-                    filename = f"static/anova_{time.time()}.png"
+                    filename = os.path.join(app.config["UPLOAD_FOLDER"], f"ttest_{time.time()}.png")
                     plt.savefig(filename)
                     plt.clf()
                     plt.close()
@@ -348,22 +348,21 @@ def download_pdf():
 
 with app.app_context():
     db.create_all()
-    
+ 
 @app.route("/create-user")
 def create_user():
+    # 🔥 DELETE ALL USERS FIRST
+    User.query.delete()
+    db.session.commit()
+
     username = "admin"
     password = generate_password_hash("admin123")
-
-    # check if already exists (important)
-    existing = User.query.filter_by(username=username).first()
-    if existing:
-        return "User already exists!"
 
     user = User(username=username, password=password)
     db.session.add(user)
     db.session.commit()
 
-    return "User created!"
-
+    return "User reset and created!"    
+ 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
