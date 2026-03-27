@@ -49,11 +49,11 @@
 
 </div>
 
-<div class="container-fluid" style="max-width:1000px;">
+<div class="container-fluid" style="max-width:1200px;">
 
     <h2 class="text-center mt-4">📊 PsychStats Web App</h2>
 
-    <div class="container-box">
+    <div class="container-box mt-4" style="width:100%; overflow:auto;">
         
         <div style="background:#f4f4f4; padding:20px; border-radius:10px; margin-bottom:20px;">
         <!-- 🔹 Upload -->
@@ -145,14 +145,22 @@
         <p>{{ result }}</p>
 
         {% if graph %}
-        <div style="text-align:center;">
-            <img src="{{ graph }}" style="width:100%; max-width:700px; height:auto; display:block; margin:auto;">
+        <div style="text-align:center; margin-top:20px;">
+    
+             <img src="{{ graph }}"
+                  style="width:100%;
+                  max-width:900px;
+                  height:auto;
+                  border:2px solid #ddd;
+                  border-radius:10px;
+                  box-shadow:0 2px 8px rgba(0,0,0,0.2);">
+
         </div>
         {% endif %}
     </div>
     {% endif %}
     </div>
-<p>Graph path: {{ graph }}</p>
+<p>{{ graph }}</p>
 
 </div>
 
