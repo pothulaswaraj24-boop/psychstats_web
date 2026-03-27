@@ -310,7 +310,8 @@ def index():
                            result=result,
                            graph=graph_path,
                            columns=columns,
-                           file_path=session.get("file_path"))
+                           file_path=session.get("file_path"),
+                           username=current_user.username)
 
 
 
