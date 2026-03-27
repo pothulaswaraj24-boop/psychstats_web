@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, session
+from werkzeug.security import generate_password_hash
 import pandas as pd
 from scipy import stats
 import matplotlib.pyplot as plt
@@ -347,6 +348,22 @@ def download_pdf():
 
 with app.app_context():
     db.create_all()
+    
+@app.route("/create-user")
+def create_user():
+    username = "admin"
+    password = generate_password_hash("admin123")
+
+    # check if already exists (important)
+    existing = User.query.filter_by(username=username).first()
+    if existing:
+        return "User already exists!"
+
+    user = User(username=username, password=password)
+    db.session.add(user)
+    db.session.commit()
+
+    return "User created!"
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
