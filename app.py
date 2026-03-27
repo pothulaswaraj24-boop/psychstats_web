@@ -84,6 +84,35 @@ def index():
                 columns = list(data.columns)
 
                 test_type = request.form.get("test")
+                
+                selected_cols = request.form.getlist("anova_cols")
+                col1 = request.form.get("col1")
+                col2 = request.form.get("col2")
+
+                # 🔴 VALIDATION LOGIC
+                if test_type == "ttest":
+                    if not col1 or not col2:
+                        result = "❌ Please select exactly 2 columns for T-test"
+                        return render_template("index.html",
+                                               result=result,
+                                               columns=columns,
+                                               file_path=file_path)
+
+                if test_type == "correlation":
+                    if not col1 or not col2:
+                        result = "❌ Please select exactly 2 columns for Correlation"
+                        return render_template("index.html",
+                                               result=result,
+                                               columns=columns,
+                                               file_path=file_path)
+
+                if test_type == "anova":
+                    if len(selected_cols) < 3:
+                        result = "❌ Please select at least 3 columns for ANOVA"
+                        return render_template("index.html",
+                                               result=result,
+                                               columns=columns,
+                                               file_path=file_path)
 
                 if test_type == "ttest":
                     col1 = request.form.get("col1")
@@ -164,7 +193,7 @@ def index():
                     session["report"] = report
 
                 elif test_type == "anova":
-                    selected_cols = request.form.getlist("anova_cols")
+      #              selected_cols = request.form.getlist("anova_cols")
 
                     groups = []
                     valid_cols = []
