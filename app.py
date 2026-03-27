@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, session
 import pandas as pd
 from scipy import stats
 import matplotlib.pyplot as plt
@@ -8,14 +8,31 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Image
 from reportlab.lib.styles import getSampleStyleSheet
 import matplotlib
 matplotlib.use('Agg')
+import glob
 
-final_report = []
+
 
 app = Flask(__name__)
+app.secret_key = "supersecretkey"
 
 UPLOAD_FOLDER = "static"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
+
+
+
+def clean_static_folder(folder="static", max_age_seconds=300):
+    now = time.time()
+    
+    for file in glob.glob(f"{folder}/*"):
+        if os.path.isfile(file):
+            file_age = now - os.path.getmtime(file)
+            
+            if file_age > max_age_seconds:
+                try:
+                    os.remove(file)
+                except:
+                    pass
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -25,6 +42,10 @@ def index():
     file_path = None
 
     if request.method == "POST":
+        if "report" not in session:
+            session["report"] = []
+            
+        clean_static_folder()
 
         # 🔹 Upload CSV
         if request.form.get("upload") == "1":
@@ -32,8 +53,12 @@ def index():
 
             if file and file.filename != "":
                 filename = f"{time.time()}_{file.filename}"
-                file_path = os.path.join("static", filename)
+                file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
                 file.save(file_path)
+                print("Saved file path:", file_path)
+
+                # ✅ SAVE in session (VERY IMPORTANT)
+                session["file_path"] = file_path
 
                 # ✅ FIX: READ FILE AFTER SAVING
                 data = pd.read_csv(file_path)
@@ -45,8 +70,8 @@ def index():
         # 🔹 Run Analysis
         elif "analyze" in request.form:
             graph_path = ""
-            final_report.clear()
-            file_path = request.form.get("file_path")
+            session["report"] = []
+            file_path = session.get("file_path")
 
             if file_path:
                 data = pd.read_csv(file_path)
@@ -81,11 +106,16 @@ def index():
                     plt.close()
                     graph_path = filename
                     
-                    final_report.append({
+                    
+                    report = session.get("report", [])
+                    
+                    report.append({
                         "title": "T-Test",
                         "text": result,
                         "image": graph_path
                     })
+                    
+                    session["report"] = report
 
                 elif test_type == "correlation":
                     col1 = request.form.get("col1")
@@ -118,11 +148,15 @@ def index():
                     plt.close()
                     graph_path = filename
                     
-                    final_report.append({
+                    report = session.get("report", [])
+                    
+                    report.append({
                         "title": "Correlation",
                         "text": result,
                         "image": graph_path
                     })
+                    
+                    session["report"] = report
 
                 elif test_type == "anova":
                     selected_cols = request.form.getlist("anova_cols")
@@ -157,19 +191,23 @@ def index():
                     plt.close()
 
                     graph_path = filename
+                    
+                    report = session.get("report", [])
 
-                    final_report.append({
+                    report.append({
                         "title": "ANOVA",
                         "text": result,
                         "image": graph_path
                     })
-
-
+                    
+                    session["report"] = report
+                    
     return render_template("index.html",
                            result=result,
                            graph=graph_path,
                            columns=columns,
-                           file_path=file_path)
+                           file_path=session.get("file_path"))
+
 
 
 @app.route("/download")
@@ -183,8 +221,10 @@ def download_pdf():
 
     content.append(Paragraph("PsychStats Report", styles['Title']))
     content.append(Spacer(1, 20))
+    
+    report = session.get("report", [])
 
-    for section in final_report:
+    for section in report:
         content.append(Paragraph(section["title"], styles['Heading2']))
         content.append(Spacer(1, 10))
 
@@ -206,4 +246,4 @@ def download_pdf():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(host="0.0.0.0", port=10000)
