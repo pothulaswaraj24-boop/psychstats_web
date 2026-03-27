@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, session
+from flask import redirect, url_for
 from werkzeug.security import generate_password_hash
 from werkzeug.security import check_password_hash
 import pandas as pd
@@ -93,7 +94,7 @@ def login():
                 return "⚠️ This account is already used on another device!"
 
             login_user(user)
-            return "Login successful!"
+            return redirect(url_for("index"))
 
         else:
             return "Invalid credentials"
