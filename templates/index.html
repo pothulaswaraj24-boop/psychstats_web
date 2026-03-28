@@ -51,6 +51,38 @@
     </div>
 </div>
 
+{% if not current_user.is_authenticated %}
+<button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
+<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#signupModal">Signup</button>
+{% endif %}
+
+
+<!-- 🔐 SIGNUP MODAL -->
+<div class="modal fade" id="signupModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5>Signup</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <input type="text" id="s_name" placeholder="Full Name" class="form-control mb-2">
+        <input type="email" id="s_email" placeholder="Email" class="form-control mb-2">
+        <input type="text" id="s_user" placeholder="Username" class="form-control mb-2">
+        <input type="password" id="s_pass" placeholder="Password" class="form-control mb-2">
+        <div id="signup-error" style="color:red;"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-success" onclick="signupUser()">Signup</button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 
 {% if not current_user.is_authenticated %}
 <div class="alert alert-info mt-3 text-center">
@@ -195,6 +227,27 @@ function loginUser() {
     });
 }
 </script>
+
+<script>
+function signupUser() {
+    fetch("/signup", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `full_name=${s_name.value}&email=${s_email.value}&username=${s_user.value}&password=${s_pass.value}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "success") {
+            alert("Signup successful! Now login.");
+        } else {
+            document.getElementById("signup-error").innerText = data.message;
+        }
+    });
+}
+</script>
+
 
 <h2>Student Profile</h2>
 

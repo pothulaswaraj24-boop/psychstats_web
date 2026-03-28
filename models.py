@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from datetime import datetime, timedelta
 
 db = SQLAlchemy()
 
@@ -15,3 +16,7 @@ class User(UserMixin, db.Model):
 
     full_name = db.Column(db.String(150))
     email = db.Column(db.String(150), unique=True)
+    
+    # 🔥 NEW FIELDS
+    is_subscribed = db.Column(db.Boolean, default=False)
+    subscription_expiry = db.Column(db.DateTime)

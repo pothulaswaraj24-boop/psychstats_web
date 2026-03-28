@@ -14,7 +14,7 @@ matplotlib.use('Agg')
 import glob
 from flask import jsonify
 from flask import send_file
-
+from datetime import datetime, timedelta
 from models import db, User
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
@@ -104,6 +104,37 @@ def register():
 
     return render_template("register.html")
 
+
+@app.route("/signup", methods=["POST"])
+def signup():
+    try:
+        username = request.form.get("username")
+        password = request.form.get("password")
+        full_name = request.form.get("full_name")
+        email = request.form.get("email")
+
+        if User.query.filter_by(username=username).first():
+            return {"status": "error", "message": "Username already exists"}
+
+        user = User(
+            username=username,
+            password=generate_password_hash(password),
+            full_name=full_name,
+            email=email,
+            is_subscribed=False  # 🔒 locked initially
+        )
+
+        db.session.add(user)
+        db.session.commit()
+
+        return {"status": "success"}
+
+    except Exception as e:
+        print("SIGNUP ERROR:", e)
+        return jsonify({"status": "error", "message": "Signup failed"})
+    
+    
+
 @app.route("/login", methods=["POST"])
 def login():
     try:
@@ -123,6 +154,26 @@ def login():
         return jsonify({"status": "error", "message": "Server error"})
 
     
+@app.route("/buy")
+@login_required
+def buy():
+    current_user.is_subscribed = True
+    current_user.subscription_expiry = datetime.utcnow() + timedelta(days=30)
+    db.session.commit()
+
+    return redirect("/")
+
+
+@app.route("/profile", methods=["GET", "POST"])
+@login_required
+def profile():
+    if request.method == "POST":
+        current_user.full_name = request.form.get("full_name")
+        current_user.email = request.form.get("email")
+        db.session.commit()
+
+    return render_template("profile.html", user=current_user)    
+    
     
 @app.route("/logout", methods=["GET", "POST"])
 @login_required
@@ -134,18 +185,15 @@ def logout():
 #@login_required
 def index():
     if not current_user.is_authenticated:
-        return render_template("index.html",
-                               result="",
-                               graph="",
-                               columns=[],
-                               file_path=None,
-                               username=None)
-    result = ""
-    graph_path = ""
-    columns = []
-    file_path = None
+        return render_template("index.html", result="", columns=[], graph="",
+                                file_path=None,username=None)
 
-   # if request.method == "POST":
+    if not current_user.is_subscribed:
+        return render_template("index.html",
+                               result="⚠️ Please buy subscription to use features",
+                               columns=[],
+                               graph="")
+   
     if request.method == "POST":
         if not current_user.is_authenticated:
             return redirect(url_for("login"))
