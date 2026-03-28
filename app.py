@@ -388,25 +388,23 @@ def download_pdf():
 
 #app.run(debug=True)
 
-with app.app_context():
-    db.create_all()
- 
-    
+
 @app.route("/create-user")
 def create_user():
-    username = "admin"
-    password = generate_password_hash("admin123")
+    User.query.delete()
+    db.session.commit()
 
-    existing = User.query.filter_by(username=username).first()
-    if existing:
-        return "User already exists"
+    user = User(
+        username="admin",
+        password=generate_password_hash("admin123"),
+        full_name="Swaraj",
+        email="swaraj@email.com"
+    )
 
-    user = User(username=username, password=password)
     db.session.add(user)
     db.session.commit()
 
-    return "User created: admin / admin123"
-
+    return "User created!"
 #@app.route("/create-user")
 #def create_user():
     # 🔥 DELETE ALL USERS FIRST
@@ -421,6 +419,11 @@ def create_user():
 #    db.session.commit()
 
 #    return "User reset and created!"    
+
+with app.app_context():
+    db.drop_all()
+    db.create_all()
+ 
  
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
