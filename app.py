@@ -26,17 +26,19 @@ app.secret_key = "supersecretkey"
 
 app.config['SECRET_KEY'] = 'secret123'
 
+
+
 database_url = os.environ.get("DATABASE_URL")
 
 if database_url:
-    # Fix for postgres URL issue
     if database_url.startswith("postgres://"):
         database_url = database_url.replace("postgres://", "postgresql://", 1)
 
     app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 else:
-    # fallback for local
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 
 db.init_app(app)
@@ -415,20 +417,20 @@ def download_pdf():
 with app.app_context():
     db.create_all()
  
-@app.route("/create-user")
-def create_user():
+#@app.route("/create-user")
+#def create_user():
     # 🔥 DELETE ALL USERS FIRST
-    User.query.delete()
-    db.session.commit()
+#    User.query.delete()
+#    db.session.commit()
 
-    username = "swaraj_admin"
-    password = generate_password_hash("Swaraj@123")
+#    username = "swaraj_admin"
+#    password = generate_password_hash("Swaraj@123")
 
-    user = User(username=username, password=password)
-    db.session.add(user)
-    db.session.commit()
+#    user = User(username=username, password=password)
+#    db.session.add(user)
+#    db.session.commit()
 
-    return "User reset and created!"    
+#    return "User reset and created!"    
  
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=10000)
