@@ -23,25 +23,15 @@ from flask_login import UserMixin
 from flask import Flask
 from models import db
 
+
+
+
+
+
 app = Flask(__name__)
-#app.secret_key = "supersecretkey"
-
-#app.config['SECRET_KEY'] = 'secret123'
-
-
-
+app.config['SECRET_KEY'] = 'secret123'
 
 database_url = os.environ.get("DATABASE_URL")
-
-if database_url:
-    if database_url.startswith("postgres://"):
-        database_url = database_url.replace("postgres://", "postgresql://", 1)
-
-    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
-else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 if database_url:
     if database_url.startswith("postgres://"):
@@ -54,6 +44,9 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
+
+
+
 login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = "login"
@@ -65,27 +58,6 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # ✅ CREATE FOLDER IF NOT EXISTS
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-
-
-
-
-
-
-db = SQLAlchemy()
-
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    
-    username = db.Column(db.String(100), unique=True, nullable=False)
-    password = db.Column(db.String(200), nullable=False)
-
-    # 🔹 Profile fields
-    full_name = db.Column(db.String(150))
-    email = db.Column(db.String(150), unique=True)
-    
-    # 🔹 Device lock (optional)
-    user_agent = db.Column(db.String(300))
-
 
 
 def clean_static_folder(folder="static", max_age_seconds=300):
