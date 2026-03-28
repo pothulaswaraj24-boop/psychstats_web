@@ -11,3 +11,7 @@ class User(UserMixin, db.Model):
     # Device restriction
     ip_address = db.Column(db.String(100))
     user_agent = db.Column(db.String(300))
+    
+
+    full_name = db.Column(db.String(150))
+    email = db.Column(db.String(150), unique=True)

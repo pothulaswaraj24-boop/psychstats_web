@@ -21,12 +21,6 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from flask import Flask
-from models import db
-
-
-
-
-
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret123'
@@ -43,8 +37,6 @@ else:
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
-
-
 
 
 login_manager = LoginManager()
@@ -396,6 +388,8 @@ def download_pdf():
     # ✅ DIRECT DOWNLOAD (NO EXTRA PAGE)
     return send_file(file_path, as_attachment=True, download_name="PsychStats_Report.pdf")
 
+
+#app.run(debug=True)
 
 with app.app_context():
     db.create_all()
