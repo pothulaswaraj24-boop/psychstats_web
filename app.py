@@ -67,6 +67,9 @@ def clean_static_folder(folder="static", max_age_seconds=300):
 
 @login_manager.user_loader
 def load_user(user_id):
+    
+    is_admin = db.Column(db.Boolean, default=False)
+    
     return User.query.get(int(user_id))
 
 
@@ -183,8 +186,8 @@ def index():
     if not current_user.is_authenticated:
         return render_template("index.html", result="", columns=[], graph="",
                                 file_path=None,username=None)
-
-    if not current_user.is_subscribed:
+    # 🔥 KEY LOGIC
+    if not current_user.is_admin and not current_user.is_subscribed:
         return render_template("index.html",
                                result="⚠️ Please buy subscription to use features",
                                columns=[],
@@ -442,13 +445,15 @@ def create_user():
         username="admin",
         password=generate_password_hash("admin123"),
         full_name="Swaraj",
-        email="swaraj@email.com"
+        email="swaraj@email.com",
+        is_admin=True,
+        is_subscribed=True
     )
 
     db.session.add(user)
     db.session.commit()
 
-    return "User created!"
+    return "Admin created!"
 #@app.route("/create-user")
 #def create_user():
     # 🔥 DELETE ALL USERS FIRST

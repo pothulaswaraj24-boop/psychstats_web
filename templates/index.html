@@ -84,6 +84,16 @@
 </div>
 
 
+{% if current_user.is_authenticated and not current_user.is_admin and not current_user.is_subscribed %}
+    <div class="text-center mt-3">
+        <a href="/buy" class="btn btn-warning">Buy Subscription</a>
+    </div>
+{% endif %}
+
+{% if current_user.is_admin %}
+    <span style="color:yellow;">(Admin)</span>
+{% endif %}
+
 {% if not current_user.is_authenticated %}
 <div class="alert alert-info mt-3 text-center">
     Please login to upload files and run analysis.
