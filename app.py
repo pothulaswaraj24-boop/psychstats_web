@@ -205,7 +205,7 @@ def index():
                     plt.figure(figsize=(6,4))
                     plt.bar([col1, col2], [g1.mean(), g2.mean()])
                     filename = f"ttest_{time.time()}.png"
-                    full_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+                    full_path = os.path.join("static", filename)
                     plt.savefig(full_path)
                     graph_path = f"/static/{filename}"
                     plt.savefig(filename)
@@ -250,7 +250,7 @@ def index():
                     plt.figure(figsize=(6,4))
                     plt.scatter(x, y)
                     filename = f"corr_{time.time()}.png"
-                    full_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+                    full_path = os.path.join("static", filename)
                     plt.savefig(full_path)
                     graph_path = f"/static/{filename}"
                     plt.savefig(filename)
@@ -296,7 +296,7 @@ def index():
                     means = [g.mean() for g in groups]
                     plt.bar(valid_cols, means)
                     filename = f"anova_{time.time()}.png"
-                    full_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+                    full_path = os.path.join("static", filename)
                     plt.savefig(full_path)
                     graph_path = f"/static/{filename}"
                     plt.savefig(filename)
