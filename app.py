@@ -104,22 +104,24 @@ def register():
 
     return render_template("register.html")
 
-
-
-
-
 @app.route("/login", methods=["POST"])
 def login():
-    username = request.form.get("username")
-    password = request.form.get("password")
+    try:
+        username = request.form.get("username")
+        password = request.form.get("password")
 
-    user = User.query.filter_by(username=username).first()
+        user = User.query.filter_by(username=username).first()
 
-    if user and check_password_hash(user.password, password):
-        login_user(user)
-        return jsonify({"status": "success"})
-    else:
-        return jsonify({"status": "error", "message": "Invalid credentials"})
+        if user and check_password_hash(user.password, password):
+            login_user(user)
+            return jsonify({"status": "success"})
+        else:
+            return jsonify({"status": "error", "message": "Invalid credentials"})
+
+    except Exception as e:
+        print("LOGIN ERROR:", e)   # 👈 VERY IMPORTANT
+        return jsonify({"status": "error", "message": "Server error"})
+
     
     
 @app.route("/logout", methods=["GET", "POST"])
@@ -389,6 +391,22 @@ def download_pdf():
 with app.app_context():
     db.create_all()
  
+    
+@app.route("/create-user")
+def create_user():
+    username = "admin"
+    password = generate_password_hash("admin123")
+
+    existing = User.query.filter_by(username=username).first()
+    if existing:
+        return "User already exists"
+
+    user = User(username=username, password=password)
+    db.session.add(user)
+    db.session.commit()
+
+    return "User created: admin / admin123"
+
 #@app.route("/create-user")
 #def create_user():
     # 🔥 DELETE ALL USERS FIRST

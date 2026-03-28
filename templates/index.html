@@ -179,15 +179,19 @@ function loginUser() {
         headers: {
             "Content-Type": "application/x-www-form-urlencoded"
         },
-        body: `username=${username}&password=${password}`
+        body: `username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
     })
     .then(res => res.json())
     .then(data => {
         if (data.status === "success") {
-            location.reload();  // 🔄 reload page after login
+            location.reload();
         } else {
             document.getElementById("login-error").innerText = data.message;
         }
+    })
+    .catch(err => {
+        document.getElementById("login-error").innerText = "Server error";
+        console.log(err);
     });
 }
 </script>
