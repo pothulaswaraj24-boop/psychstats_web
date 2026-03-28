@@ -109,14 +109,24 @@ def logout():
     return redirect(url_for("login"))
 
 @app.route("/", methods=["GET", "POST"])
-@login_required
+#@login_required
 def index():
+    if not current_user.is_authenticated:
+        return render_template("index.html",
+                               result="",
+                               graph="",
+                               columns=[],
+                               file_path=None,
+                               username=None)
     result = ""
     graph_path = ""
     columns = []
     file_path = None
 
+   # if request.method == "POST":
     if request.method == "POST":
+        if not current_user.is_authenticated:
+            return redirect(url_for("login"))
         if "report" not in session:
             session["report"] = []
             

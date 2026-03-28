@@ -45,13 +45,15 @@
             <a href="/login" style="color:#4CAF50;">Login</a>
         {% endif %}
     </div>
-
-
-    <div>
-        Welcome, <b>{{ username }}</b> |
-        <a href="/logout" style="color:#ff4d4d;">Logout</a>
-    </div>
 </div>
+
+
+{% if not current_user.is_authenticated %}
+<div class="alert alert-info mt-3 text-center">
+    Please login to upload files and run analysis.
+</div>
+{% endif %}
+
 
 <div class="container-fluid" style="max-width:1200px;">
 
