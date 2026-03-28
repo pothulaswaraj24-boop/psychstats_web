@@ -100,11 +100,13 @@ def login():
 
     return jsonify({"status": "error", "message": "Invalid credentials"})
 
-@app.route("/logout")
+@app.route("/logout", methods=["GET", "POST"])
 @login_required
 def logout():
     logout_user()
-    return redirect(url_for("login"))
+    return redirect(url_for("index"))
+
+
 
 @app.route("/", methods=["GET", "POST"])
 #@login_required
@@ -368,8 +370,8 @@ def create_user():
     User.query.delete()
     db.session.commit()
 
-    username = "admin"
-    password = generate_password_hash("admin123")
+    username = "swaraj_admin"
+    password = generate_password_hash("Swaraj@123")
 
     user = User(username=username, password=password)
     db.session.add(user)

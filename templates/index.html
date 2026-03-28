@@ -40,7 +40,9 @@
     <div>
         {% if current_user.is_authenticated %}
             Welcome, <b>{{ current_user.username }}</b> |
-            <a href="/logout" style="color:#ff4d4d;">Logout</a>
+            <form action="/logout" method="POST" style="display:inline;">
+                <button type="submit" class="btn btn-danger btn-sm">Logout</button>
+            </form>
         {% else %}
             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#loginModal">
                 Login
