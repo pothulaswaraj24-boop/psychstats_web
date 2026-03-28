@@ -70,10 +70,7 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
-@app.route("/profile")
-@login_required
-def profile():
-    return render_template("profile.html", user=current_user)
+
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
@@ -162,7 +159,6 @@ def buy():
     db.session.commit()
 
     return redirect("/")
-
 
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
