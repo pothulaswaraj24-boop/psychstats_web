@@ -13,6 +13,7 @@ import matplotlib
 matplotlib.use('Agg')
 import glob
 from flask import jsonify
+from flask import send_file
 
 from models import db, User
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -327,7 +328,6 @@ def index():
                            username=current_user.username)
 
 
-
 @app.route("/download")
 def download_pdf():
     file_path = "static/report.pdf"
@@ -359,7 +359,9 @@ def download_pdf():
 
     doc.build(content)
 
-    return f'<a href="/{file_path}" download>Click here to download PDF</a>'
+    # ✅ DIRECT DOWNLOAD (NO EXTRA PAGE)
+    return send_file(file_path, as_attachment=True, download_name="PsychStats_Report.pdf")
+
 
 with app.app_context():
     db.create_all()
