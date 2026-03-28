@@ -106,7 +106,7 @@ def login():
 @login_required
 def logout():
     logout_user()
-    return "Logged out"
+    return redirect(url_for("login"))
 
 @app.route("/", methods=["GET", "POST"])
 @login_required
@@ -217,7 +217,7 @@ def index():
                     report.append({
                         "title": "T-Test",
                         "text": result,
-                        "image": graph_path
+                        "image": full_path
                     })
                     
                     session["report"] = report
@@ -246,7 +246,7 @@ def index():
                     
                     
                     plt.figure(figsize=(6,4))
-                    plt.plot(x, y, '-o')
+                    plt.scatter(x, y)
                     plt.tight_layout()
                     filename = f"corr_{time.time()}.png"
                     full_path = os.path.join("static", filename)
@@ -259,7 +259,7 @@ def index():
                     report.append({
                         "title": "Correlation",
                         "text": result,
-                        "image": graph_path
+                        "image": full_path
                     })
                     
                     session["report"] = report
@@ -304,7 +304,7 @@ def index():
                     report.append({
                         "title": "ANOVA",
                         "text": result,
-                        "image": graph_path
+                        "image": full_path
                     })
                     
                     session["report"] = report

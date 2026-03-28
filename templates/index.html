@@ -36,6 +36,17 @@
 <!-- 🔷 HEADER -->
 <div style="display:flex; justify-content:space-between; align-items:center; padding:12px 20px; background:#222; color:white;">
     <h3>📊 PsychStats Dashboard</h3>
+
+    <div>
+        {% if current_user.is_authenticated %}
+            Welcome, <b>{{ current_user.username }}</b> |
+            <a href="/logout" style="color:#ff4d4d;">Logout</a>
+        {% else %}
+            <a href="/login" style="color:#4CAF50;">Login</a>
+        {% endif %}
+    </div>
+
+
     <div>
         Welcome, <b>{{ username }}</b> |
         <a href="/logout" style="color:#ff4d4d;">Logout</a>
