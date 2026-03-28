@@ -104,6 +104,10 @@ def register():
 
     return render_template("register.html")
 
+
+
+
+
 @app.route("/login", methods=["POST"])
 def login():
     username = request.form.get("username")
@@ -112,28 +116,17 @@ def login():
     user = User.query.filter_by(username=username).first()
 
     if user and check_password_hash(user.password, password):
-
-        current_agent = request.headers.get('User-Agent')
-
-        if not user.user_agent:
-            user.user_agent = current_agent
-            db.session.commit()
-
-        elif user.user_agent != current_agent:
-            return jsonify({"status": "error", "message": "Account already used on another device"})
-
         login_user(user)
         return jsonify({"status": "success"})
-
-    return jsonify({"status": "error", "message": "Invalid credentials"})
-
+    else:
+        return jsonify({"status": "error", "message": "Invalid credentials"})
+    
+    
 @app.route("/logout", methods=["GET", "POST"])
 @login_required
 def logout():
     logout_user()
     return redirect(url_for("index"))
-
-
 
 @app.route("/", methods=["GET", "POST"])
 #@login_required
@@ -346,13 +339,15 @@ def index():
                     
                     session["report"] = report
                     
+                    
     return render_template("index.html",
                            result=result,
                            graph=graph_path,
                            columns=columns,
                            file_path=session.get("file_path"),
-                           username=current_user.username)
-
+                           username=current_user.username,
+                           user=current_user)
+                    
 
 @app.route("/download")
 def download_pdf():
