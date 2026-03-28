@@ -246,7 +246,7 @@ def index():
                     
                     
                     plt.figure(figsize=(6,4))
-                    plt.scatter(x, y, '-o')
+                    plt.plot(x, y, '-o')
                     plt.tight_layout()
                     filename = f"corr_{time.time()}.png"
                     full_path = os.path.join("static", filename)
