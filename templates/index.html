@@ -103,13 +103,13 @@
 
     <!-- 🔷 RESULT -->
     {% if result %}
-    <div class="container-box">
-        <h4>Result</h4>
+    <div class="container-box mt-4">
+        <h4>📈 Result</h4>
         <p>{{ result }}</p>
 
         {% if graph %}
         <div class="text-center">
-            <img src="{{ graph }}">
+            <img src="{{ graph }}" class="img-fluid">
         </div>
         {% endif %}
     </div>
