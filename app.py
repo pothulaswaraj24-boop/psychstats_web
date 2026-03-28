@@ -203,7 +203,7 @@ def index():
                     result = f"T={t:.3f}, p={p:.4f}"
                     
                     plt.figure(figsize=(6,4))
-                    plt.bar([col1, col2], [g1.mean(), g2.mean()])
+                    plt.bar([col1, col2], [g1.mean(), g2.mean()], width=0.4)
                     plt.tight_layout()
                     filename = f"ttest_{time.time()}.png"
                     full_path = os.path.join("static", filename)
@@ -246,7 +246,7 @@ def index():
                     
                     
                     plt.figure(figsize=(6,4))
-                    plt.scatter(x, y)
+                    plt.scatter(x, y, '-o')
                     plt.tight_layout()
                     filename = f"corr_{time.time()}.png"
                     full_path = os.path.join("static", filename)
@@ -290,7 +290,7 @@ def index():
 
                     plt.figure(figsize=(6,4))
                     means = [g.mean() for g in groups]
-                    plt.bar(valid_cols, means)
+                    plt.bar(valid_cols, means, width=0.4)
                     plt.tight_layout()
                     filename = f"anova_{time.time()}.png"
                     full_path = os.path.join("static", filename)
