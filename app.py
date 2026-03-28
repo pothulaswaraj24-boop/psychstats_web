@@ -20,11 +20,14 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
+from flask import Flask
+from models import db
 
 app = Flask(__name__)
-app.secret_key = "supersecretkey"
+#app.secret_key = "supersecretkey"
 
-app.config['SECRET_KEY'] = 'secret123'
+#app.config['SECRET_KEY'] = 'secret123'
+
 
 
 
@@ -40,6 +43,14 @@ else:
 
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
+if database_url:
+    if database_url.startswith("postgres://"):
+        database_url = database_url.replace("postgres://", "postgresql://", 1)
+    app.config['SQLALCHEMY_DATABASE_URI'] = database_url
+else:
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db.init_app(app)
 
