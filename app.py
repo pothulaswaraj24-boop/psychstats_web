@@ -207,12 +207,9 @@ def index():
                     filename = f"ttest_{time.time()}.png"
                     full_path = os.path.join("static", filename)
                     plt.savefig(full_path)
+                    plt.close()
                     graph_path = f"/static/{filename}"
                     plt.savefig(filename)
-                    plt.clf()
-                    plt.close()
-                    graph_path = filename
-                    
                     
                     report = session.get("report", [])
                     
@@ -254,9 +251,6 @@ def index():
                     plt.savefig(full_path)
                     graph_path = f"/static/{filename}"
                     plt.savefig(filename)
-                    plt.clf()
-                    plt.close()
-                    graph_path = filename
                     
                     report = session.get("report", [])
                     
@@ -300,10 +294,7 @@ def index():
                     plt.savefig(full_path)
                     graph_path = f"/static/{filename}"
                     plt.savefig(filename)
-                    plt.clf()
-                    plt.close()
 
-                    graph_path = filename
                     
                     report = session.get("report", [])
 
