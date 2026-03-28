@@ -12,6 +12,7 @@ from reportlab.lib.styles import getSampleStyleSheet
 import matplotlib
 matplotlib.use('Agg')
 import glob
+from flask import jsonify
 
 from models import db, User
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
@@ -55,6 +56,8 @@ def clean_static_folder(folder="static", max_age_seconds=300):
 def load_user(user_id):
     return User.query.get(int(user_id))
 
+
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -74,33 +77,28 @@ def register():
 
 
 
-@app.route("/login", methods=["GET", "POST"])
+@app.route("/login", methods=["POST"])
 def login():
-    if request.method == "POST":
-        username = request.form.get("username")
-        password = request.form.get("password")
+    username = request.form.get("username")
+    password = request.form.get("password")
 
-        user = User.query.filter_by(username=username).first()
+    user = User.query.filter_by(username=username).first()
 
-        if user and check_password_hash(user.password, password):
+    if user and check_password_hash(user.password, password):
 
-            current_agent = request.headers.get('User-Agent')
+        current_agent = request.headers.get('User-Agent')
 
-            if not user.user_agent:
-                user.user_agent = current_agent
-                db.session.commit()
+        if not user.user_agent:
+            user.user_agent = current_agent
+            db.session.commit()
 
-            elif user.user_agent != current_agent:
-                return "⚠️ This account is already used on another device!"
+        elif user.user_agent != current_agent:
+            return jsonify({"status": "error", "message": "Account already used on another device"})
 
-            login_user(user)
-            return redirect(url_for("index"))
+        login_user(user)
+        return jsonify({"status": "success"})
 
-        else:
-            return "Invalid credentials"
-
-    return render_template("login.html")
-
+    return jsonify({"status": "error", "message": "Invalid credentials"})
 
 @app.route("/logout")
 @login_required
