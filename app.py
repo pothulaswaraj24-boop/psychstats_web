@@ -18,11 +18,14 @@ from flask import send_file
 from models import db, User
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 
+from flask_sqlalchemy import SQLAlchemy
+from flask_login import UserMixin
+
 app = Flask(__name__)
 app.secret_key = "supersecretkey"
 
 app.config['SECRET_KEY'] = 'secret123'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
+app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get("DATABASE_URL")
 
 db.init_app(app)
 
@@ -37,6 +40,26 @@ app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # ✅ CREATE FOLDER IF NOT EXISTS
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+
+
+
+
+
+db = SQLAlchemy()
+
+class User(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    
+    username = db.Column(db.String(100), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+
+    # 🔹 Profile fields
+    full_name = db.Column(db.String(150))
+    email = db.Column(db.String(150), unique=True)
+    
+    # 🔹 Device lock (optional)
+    user_agent = db.Column(db.String(300))
 
 
 
@@ -58,25 +81,39 @@ def load_user(user_id):
     return User.query.get(int(user_id))
 
 
+@app.route("/profile")
+@login_required
+def profile():
+    return render_template("profile.html", user=current_user)
 
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
         username = request.form.get("username")
         password = request.form.get("password")
+        full_name = request.form.get("full_name")
+        email = request.form.get("email")
+
+        # 🔒 check duplicate
+        existing = User.query.filter_by(username=username).first()
+        if existing:
+            return "Username already exists"
 
         hashed = generate_password_hash(password)
 
-        user = User(username=username, password=hashed)
+        user = User(
+            username=username,
+            password=hashed,
+            full_name=full_name,
+            email=email
+        )
+
         db.session.add(user)
         db.session.commit()
 
-        return "Registered successfully! Go to login."
+        return "Registered! Now login."
 
     return render_template("register.html")
-
-
-
 
 @app.route("/login", methods=["POST"])
 def login():
