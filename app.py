@@ -21,6 +21,7 @@ from flask_login import LoginManager, login_user, logout_user, login_required, c
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from flask import Flask
+from flask import make_response
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret123'
@@ -66,10 +67,7 @@ def clean_static_folder(folder="static", max_age_seconds=300):
                     pass
 
 @login_manager.user_loader
-def load_user(user_id):
-    
-    is_admin = db.Column(db.Boolean, default=False)
-    
+def load_user(user_id):    
     return User.query.get(int(user_id))
 
 
@@ -113,26 +111,32 @@ def signup():
         full_name = request.form.get("full_name")
         email = request.form.get("email")
 
+        # 🔴 Check existing user
         if User.query.filter_by(username=username).first():
             return {"status": "error", "message": "Username already exists"}
 
+        hashed = generate_password_hash(password)
+
         user = User(
             username=username,
-            password=generate_password_hash(password),
+            password=hashed,
             full_name=full_name,
             email=email,
-            is_subscribed=False  # 🔒 locked initially
+            is_admin=False,
+            is_subscribed=False
         )
 
         db.session.add(user)
         db.session.commit()
 
+        # 🔥 AUTO LOGIN AFTER SIGNUP
+        login_user(user)
+
         return {"status": "success"}
 
     except Exception as e:
         print("SIGNUP ERROR:", e)
-        return jsonify({"status": "error", "message": "Signup failed"})
-    
+        return {"status": "error", "message": "Signup failed"}
     
 
 @app.route("/login", methods=["POST"])
@@ -153,15 +157,87 @@ def login():
         print("LOGIN ERROR:", e)   # 👈 VERY IMPORTANT
         return jsonify({"status": "error", "message": "Server error"})
 
-    
-@app.route("/buy")
-@login_required
-def buy():
-    current_user.is_subscribed = True
-    current_user.subscription_expiry = datetime.utcnow() + timedelta(days=30)
-    db.session.commit()
+ 
 
-    return redirect("/")
+@app.route("/admin", methods=["GET", "POST"])
+@login_required
+def admin_dashboard():
+
+    # 🔒 Only admin allowed
+    if not current_user.is_admin:
+        return "Access Denied"
+
+    message = ""
+
+    # 🔹 Handle subscription grant
+    if request.method == "POST":
+        username = request.form.get("username")
+
+        user = User.query.filter_by(username=username).first()
+
+        if user:
+            user.is_subscribed = True
+            db.session.commit()
+            message = f"✅ Subscription granted to {username}"
+        else:
+            message = "❌ User not found"
+
+    users = User.query.all()
+
+    response = make_response(render_template("admin.html", users=users, message=message))
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@app.route("/request-subscription")
+@login_required
+def request_subscription():
+    current_user.is_requested = True
+    db.session.commit()
+    return redirect(url_for("index"))
+
+@app.route("/revoke/<int:user_id>")
+@login_required
+def revoke(user_id):
+    if not current_user.is_admin:
+        return "Access Denied"
+
+    user = User.query.get(user_id)
+
+    if user:
+        user.is_subscribed = False
+        db.session.commit()
+
+    return redirect(url_for("admin_dashboard"))
+
+
+@app.route("/approve/<int:user_id>")
+@login_required
+def approve(user_id):
+    if not current_user.is_admin:
+        return "Access Denied"
+
+    user = User.query.get(user_id)
+
+    if user:
+        user.is_subscribed = True
+        user.is_requested = False
+        db.session.commit()
+
+    return redirect(url_for("admin_dashboard"))
+
+@app.route("/test-db")
+def test_db():
+    try:
+        users = User.query.all()
+        return f"Users in DB: {len(users)}"
+    except Exception as e:
+        return str(e)
+   
+@app.route("/buy_subscription")
+@login_required
+def buy_subscription():
+    return redirect(url_for("index"))
 
 @app.route("/profile", methods=["GET", "POST"])
 @login_required
@@ -183,16 +259,24 @@ def logout():
 @app.route("/", methods=["GET", "POST"])
 #@login_required
 def index():
+    result = ""          # ✅ FIX
+    graph_path = ""      # ✅ FIX
+    columns = []         # ✅ FIX
+    file_path = None 
+    
     if not current_user.is_authenticated:
-        return render_template("index.html", result="", columns=[], graph="",
+        return render_template("index.html", result="⚠️ Please login to use features", columns=[], graph="",
                                 file_path=None,username=None)
     # 🔥 KEY LOGIC
-    if not current_user.is_admin and not current_user.is_subscribed:
-        return render_template("index.html",
+    if current_user.is_authenticated:
+       if not current_user.is_admin and not current_user.is_subscribed:
+           return render_template("index.html",
                                result="⚠️ Please buy subscription to use features",
                                columns=[],
-                               graph="")
-   
+                               graph="",
+                               user=current_user)
+       
+      
     if request.method == "POST":
         if not current_user.is_authenticated:
             return redirect(url_for("login"))
@@ -289,7 +373,6 @@ def index():
                     plt.savefig(full_path)
                     plt.close()
                     graph_path = f"/static/{filename}"
-                    plt.savefig(filename)
                     
                     report = session.get("report", [])
                     
@@ -331,7 +414,6 @@ def index():
                     full_path = os.path.join("static", filename)
                     plt.savefig(full_path)
                     graph_path = f"/static/{filename}"
-                    plt.savefig(filename)
                     
                     report = session.get("report", [])
                     
@@ -375,8 +457,6 @@ def index():
                     full_path = os.path.join("static", filename)
                     plt.savefig(full_path)
                     graph_path = f"/static/{filename}"
-                    plt.savefig(filename)
-
                     
                     report = session.get("report", [])
 
@@ -389,14 +469,18 @@ def index():
                     session["report"] = report
                     
                     
-    return render_template("index.html",
+                    
+    response = make_response(render_template("index.html",
                            result=result,
                            graph=graph_path,
                            columns=columns,
                            file_path=session.get("file_path"),
-                           username=current_user.username,
-                           user=current_user)
-                    
+                           username=current_user.username if current_user.is_authenticated else None,
+                           user=current_user if current_user.is_authenticated else None
+                       ))
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
 
 @app.route("/download")
 def download_pdf():
@@ -475,4 +559,5 @@ with app.app_context():
  
  
 if __name__ == "__main__":
+   # app.run(debug=True)
     app.run(host="0.0.0.0", port=10000)

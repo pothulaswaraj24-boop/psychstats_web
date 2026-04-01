@@ -47,13 +47,15 @@
             <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#loginModal">
                 Login
             </button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#signupModal">
+                Signup
+            </button>
         {% endif %}
     </div>
 </div>
 
-{% if not current_user.is_authenticated %}
-<button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#loginModal">Login</button>
-<button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#signupModal">Signup</button>
+{% if current_user.is_authenticated and current_user.is_admin %}
+    <a href="/admin" class="btn btn-warning btn-sm">Admin Panel</a>
 {% endif %}
 
 
@@ -76,7 +78,7 @@
       </div>
 
       <div class="modal-footer">
-        <button class="btn btn-success" onclick="signupUser()">Signup</button>
+        <button class="btn btn-success" onclick="signupUser()">Sign Up</button>
       </div>
 
     </div>
@@ -84,15 +86,14 @@
 </div>
 
 
-{% if current_user.is_authenticated and not current_user.is_admin and not current_user.is_subscribed %}
-    <div class="text-center mt-3">
-        <a href="/buy" class="btn btn-warning">Buy Subscription</a>
-    </div>
+{% if current_user.is_authenticated %}
+    {% if not current_user.is_admin and not current_user.is_subscribed %}
+        <button class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#paymentModal">
+            Buy Subscription
+        </button>
+    {% endif %}
 {% endif %}
 
-{% if current_user.is_admin %}
-    <span style="color:yellow;">(Admin)</span>
-{% endif %}
 
 {% if not current_user.is_authenticated %}
 <div class="alert alert-info mt-3 text-center">
@@ -238,26 +239,6 @@ function loginUser() {
 }
 </script>
 
-<script>
-function signupUser() {
-    fetch("/signup", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/x-www-form-urlencoded"
-        },
-        body: `full_name=${s_name.value}&email=${s_email.value}&username=${s_user.value}&password=${s_pass.value}`
-    })
-    .then(res => res.json())
-    .then(data => {
-        if (data.status === "success") {
-            alert("Signup successful! Now login.");
-        } else {
-            document.getElementById("signup-error").innerText = data.message;
-        }
-    });
-}
-</script>
-
 
 <h2>Student Profile</h2>
 
@@ -281,6 +262,72 @@ function signupUser() {
 {% endif %}
 
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+
+<!-- 💰 PAYMENT MODAL -->
+<div class="modal fade" id="paymentModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Subscription Payment</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <p><b>Contact Admin to Activate Subscription</b></p>
+
+        <hr>
+
+        <p><b>👤 Admin Name:</b> Swaraj</p>
+        <p><b>📧 Email:</b> yourmail@gmail.com</p>
+        <p><b>📱 Phone:</b> 9876543210</p>
+        <p><b>💳 UPI ID:</b> yourupi@upi</p>
+
+        <hr>
+
+        <p style="color:red;">
+            ⚠️ After payment, send your username to admin for activation.
+        </p>
+
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<script>
+function signupUser() {
+    let full_name = document.getElementById("s_name").value;
+    let email = document.getElementById("s_email").value;
+    let username = document.getElementById("s_user").value;
+    let password = document.getElementById("s_pass").value;
+
+    fetch("/signup", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `full_name=${encodeURIComponent(full_name)}&email=${encodeURIComponent(email)}&username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.status === "success") {
+
+            let modal = bootstrap.Modal.getInstance(document.getElementById('signupModal'));
+            modal.hide();
+
+            location.reload();
+
+        } else {
+            document.getElementById("signup-error").innerText = data.message;
+        }
+    });
+}
+</script>
+
 
 </body>
 </html>

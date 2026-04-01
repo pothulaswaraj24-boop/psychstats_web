@@ -18,5 +18,8 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(150), unique=True)
     
     # 🔥 NEW FIELDS
+    is_admin = db.Column(db.Boolean, default=False)
     is_subscribed = db.Column(db.Boolean, default=False)
     subscription_expiry = db.Column(db.DateTime)
+    is_requested = db.Column(db.Boolean, default=False)
+    
