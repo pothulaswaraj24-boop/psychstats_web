@@ -557,6 +557,7 @@ def download_pdf():
 
 @app.route("/create-user")
 def create_user():
+    User.query.delete()
     existing = User.query.filter_by(username="admin").first()
 
     if not existing:
@@ -578,7 +579,7 @@ def create_user():
 
 
 with app.app_context():
-    #db.drop_all()
+    db.drop_all()
     db.create_all()
  
  
