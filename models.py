@@ -23,3 +23,11 @@ class User(UserMixin, db.Model):
     subscription_expiry = db.Column(db.DateTime)
     is_requested = db.Column(db.Boolean, default=False)
     
+    
+    
+class AppSettings(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    admin_name = db.Column(db.String(100))
+    admin_email = db.Column(db.String(150))
+    phone = db.Column(db.String(20))
+    upi_id = db.Column(db.String(100))

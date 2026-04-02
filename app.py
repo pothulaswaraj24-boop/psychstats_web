@@ -158,32 +158,42 @@ def login():
         return jsonify({"status": "error", "message": "Server error"})
 
  
+from models import AppSettings
 
 @app.route("/admin", methods=["GET", "POST"])
 @login_required
 def admin_dashboard():
 
-    # 🔒 Only admin allowed
     if not current_user.is_admin:
         return "Access Denied"
 
     message = ""
+    settings = AppSettings.query.first()
 
-    # 🔹 Handle subscription grant
+    # 🔹 Subscription approval
     if request.method == "POST":
-        username = request.form.get("username")
 
-        user = User.query.filter_by(username=username).first()
-
-        if user:
-            user.is_subscribed = True
+        if "update_settings" in request.form:
+            settings.admin_name = request.form.get("admin_name")
+            settings.admin_email = request.form.get("admin_email")
+            settings.phone = request.form.get("phone")
+            settings.upi_id = request.form.get("upi_id")
             db.session.commit()
-            message = f"✅ Subscription granted to {username}"
-        else:
-            message = "❌ User not found"
+            message = "✅ Payment details updated"
+
+        elif "grant_access" in request.form:
+            username = request.form.get("username")
+            user = User.query.filter_by(username=username).first()
+
+            if user:
+                user.is_subscribed = True
+                db.session.commit()
+                message = f"✅ Subscription granted to {username}"
+            else:
+                message = "❌ User not found"
 
     users = User.query.all()
-
+    
     response = make_response(render_template("admin.html", users=users, message=message))
     response.headers["Cache-Control"] = "no-store"
     return response
@@ -195,6 +205,23 @@ def request_subscription():
     current_user.is_requested = True
     db.session.commit()
     return redirect(url_for("index"))
+
+@app.route("/admin/edit-user", methods=["POST"])
+@login_required
+def admin_edit_user():
+    if not current_user.is_admin:
+        return "Access Denied"
+
+    user_id = request.form.get("user_id")
+    user = User.query.get(user_id)
+
+    if user:
+        user.full_name = request.form.get("full_name")
+        user.email = request.form.get("email")
+        db.session.commit()
+
+    return redirect(url_for("admin_dashboard"))
+
 
 @app.route("/revoke/<int:user_id>")
 @login_required
@@ -256,6 +283,10 @@ def logout():
     logout_user()
     return redirect(url_for("index"))
 
+@app.context_processor
+def inject_settings():
+    return dict(settings=AppSettings.query.first())
+
 @app.route("/", methods=["GET", "POST"])
 #@login_required
 def index():
@@ -263,10 +294,11 @@ def index():
     graph_path = ""      # ✅ FIX
     columns = []         # ✅ FIX
     file_path = None 
+    settings = AppSettings.query.first()
     
     if not current_user.is_authenticated:
         return render_template("index.html", result="⚠️ Please login to use features", columns=[], graph="",
-                                file_path=None,username=None)
+                                file_path=None,username=None,settings=settings)
     # 🔥 KEY LOGIC
     if current_user.is_authenticated:
        if not current_user.is_admin and not current_user.is_subscribed:
@@ -274,9 +306,8 @@ def index():
                                result="⚠️ Please buy subscription to use features",
                                columns=[],
                                graph="",
-                               user=current_user)
-       
-      
+                               user=current_user,settings=settings)
+        
     if request.method == "POST":
         if not current_user.is_authenticated:
             return redirect(url_for("login"))
@@ -468,16 +499,18 @@ def index():
                     
                     session["report"] = report
                     
-                    
-                    
+    
     response = make_response(render_template("index.html",
                            result=result,
                            graph=graph_path,
                            columns=columns,
                            file_path=session.get("file_path"),
                            username=current_user.username if current_user.is_authenticated else None,
-                           user=current_user if current_user.is_authenticated else None
+                           user=current_user if current_user.is_authenticated else None,
+                           settings=settings   # ✅ IMPORTANT FIX
                        ))
+    
+    
     response.headers["Cache-Control"] = "no-store"
     return response
 
@@ -557,7 +590,7 @@ def download_pdf():
 
 @app.route("/create-user")
 def create_user():
-    User.query.delete()
+    #User.query.delete()
     existing = User.query.filter_by(username="admin").first()
 
     if not existing:
@@ -579,8 +612,17 @@ def create_user():
 
 
 with app.app_context():
-    db.drop_all()
+    #db.drop_all()
     db.create_all()
+    if not AppSettings.query.first():
+        settings = AppSettings(
+            admin_name="Swaraj",
+            admin_email="yourmail@gmail.com",
+            phone="9876543210",
+            upi_id="yourupi@upi"
+        )
+        db.session.add(settings)
+        db.session.commit()
  
  
 if __name__ == "__main__":
