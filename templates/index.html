@@ -33,10 +33,37 @@
 
 <body>
 
-<!-- 🔷 HEADER -->
-<div style="display:flex; justify-content:space-between; align-items:center; padding:12px 20px; background:#222; color:white;">
-    <h3>📊 PsychStats Dashboard</h3>
 
+
+<!-- 🔷 HEADER -->
+<div style="display:flex; align-items:center; justify-content:space-between; padding:12px 20px; background:#222; color:white;">
+
+    <!-- 🔹 LEFT: PROFILE -->
+    <div style="display:flex; align-items:center; gap:15px;">
+
+        <!-- Profile Icon -->
+        <div style="width:45px; height:45px; border-radius:50%; background:#555; display:flex; align-items:center; justify-content:center; font-size:20px;">
+            👤
+        </div>
+
+        <!-- Profile Details -->
+        <div style="font-size:14px;">
+            {% if current_user.is_authenticated %}
+                <div><b>{{ current_user.full_name or "No Name" }}</b></div>
+                <div style="font-size:12px; color:#ccc;">{{ current_user.email or "No Email" }}</div>
+            {% else %}
+                <div><b>Guest User</b></div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    <!-- 🔹 CENTER: APP TITLE -->
+    <div style="text-align:center; font-size:22px; font-weight:bold;">
+        📊 PsychStats Dashboard
+    </div>
+
+    <!-- 🔹 RIGHT: LOGIN / LOGOUT -->
     <div>
         {% if current_user.is_authenticated %}
             Welcome, <b>{{ current_user.username }}</b> |
@@ -52,12 +79,12 @@
             </button>
         {% endif %}
     </div>
+
 </div>
 
 {% if current_user.is_authenticated and current_user.is_admin %}
     <a href="/admin" class="btn btn-warning btn-sm">Admin Panel</a>
 {% endif %}
-
 
 <!-- 🔐 SIGNUP MODAL -->
 <div class="modal fade" id="signupModal" tabindex="-1">
@@ -239,22 +266,6 @@ function loginUser() {
 }
 </script>
 
-
-<h2>Student Profile</h2>
-
-
-
-<h2 class="mt-4">👤 Student Profile</h2>
-
-{% if current_user.is_authenticated %}
-    <p><b>Name:</b> {{ current_user.full_name or "Not set" }}</p>
-    <p><b>Username:</b> {{ current_user.username }}</p>
-    <p><b>Email:</b> {{ current_user.email or "Not set" }}</p>
-{% else %}
-    <p>Guest User</p>
-{% endif %}
-
-
 {% if not current_user.is_authenticated %}
     <div class="alert alert-warning text-center">
         🔒 Login required to use features
@@ -280,8 +291,8 @@ function loginUser() {
 
         <hr>
 
-        <p><b>👤 Admin Name:</b> Swaraj</p>
-        <p><b>📧 Email:</b> yourmail@gmail.com</p>
+        <p><b>👤 Admin Name:</b> Pothula Swaraj</p>
+        <p><b>📧 Email:</b> pothulaswaraj84@gmail.com</p>
         <p><b>📱 Phone:</b> 9876543210</p>
         <p><b>💳 UPI ID:</b> yourupi@upi</p>
 

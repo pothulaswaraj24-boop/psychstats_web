@@ -520,24 +520,26 @@ def download_pdf():
 #app.run(debug=True)
 
 
-@app.route("/create-user")
-def create_user():
-    User.query.delete()
-    db.session.commit()
+#@app.route("/create-user")
+#def create_user():
+#    User.query.delete()
+#    db.session.commit()
 
-    user = User(
-        username="admin",
-        password=generate_password_hash("admin123"),
-        full_name="Swaraj",
-        email="swaraj@email.com",
-        is_admin=True,
-        is_subscribed=True
-    )
+#    user = User(
+#        username="admin",
+#        password=generate_password_hash("admin123"),
+#        full_name="Swaraj",
+#        email="swaraj@email.com",
+#        is_admin=True,
+#        is_subscribed=True
+#    )
 
-    db.session.add(user)
-    db.session.commit()
+#    db.session.add(user)
+#    db.session.commit()
 
-    return "Admin created!"
+#    return "Admin created!"
+
+
 #@app.route("/create-user")
 #def create_user():
     # 🔥 DELETE ALL USERS FIRST
@@ -551,13 +553,35 @@ def create_user():
 #    db.session.add(user)
 #    db.session.commit()
 
-#    return "User reset and created!"    
+#    return "User reset and created!"  
+
+@app.route("/create-user")
+def create_user():
+    existing = User.query.filter_by(username="admin").first()
+
+    if not existing:
+        user = User(
+            username="admin",
+            password=generate_password_hash("admin123"),
+            full_name="Pothula Swaraj",
+            email="pothulaswaraj84@email.com",
+            is_admin=True,
+            is_subscribed=True
+        )
+        db.session.add(user)
+        db.session.commit()
+        return "Admin created"
+
+    return "Admin already exists"
+
+
+
 
 with app.app_context():
-    db.drop_all()
+    #db.drop_all()
     db.create_all()
  
  
 if __name__ == "__main__":
-   # app.run(debug=True)
+    #app.run(debug=True)
     app.run(host="0.0.0.0", port=10000)
