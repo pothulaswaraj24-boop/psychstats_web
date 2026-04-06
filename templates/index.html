@@ -108,7 +108,15 @@
         <input type="text" id="s_name" placeholder="Full Name" class="form-control mb-2">
         <input type="email" id="s_email" placeholder="Email" class="form-control mb-2">
         <input type="text" id="s_user" placeholder="Username" class="form-control mb-2">
-        <input type="password" id="s_pass" placeholder="Password" class="form-control mb-2">
+        <div class="input-group mb-2">
+            <input type="password" id="s_pass" class="form-control mb-2" placeholder="Password">
+            <button class="btn btn-outline-secondary" type="button"
+                onclick="togglePassword('s_pass', this); return false;">
+                👁️
+            </button>
+        </div>
+
+
         <div id="signup-error" style="color:red;"></div>
       </div>
 
@@ -291,9 +299,21 @@ function updateProfile() {
 
       <div class="modal-body">
         <input type="text" id="username" class="form-control mb-2" placeholder="Username">
-        <input type="password" id="password" class="form-control mb-2" placeholder="Password">
+        <div class="input-group mb-2">
+            <input type="password" id="password" class="form-control mb-2" placeholder="Password">
+            <button class="btn btn-outline-secondary" type="button"
+                onclick="togglePassword('password', this); return false;">
+                👁️
+            </button>
+        </div>
         <div id="login-error" style="color:red;"></div>
       </div>
+
+      <p style="text-align:right;">
+          <a href="#" data-bs-toggle="modal" data-bs-target="#forgotModal">
+              Forgot Password?
+          </a>
+      </p>
 
       <div class="modal-footer">
         <button class="btn btn-primary" onclick="loginUser()">Login</button>
@@ -302,6 +322,85 @@ function updateProfile() {
     </div>
   </div>
 </div>
+
+
+
+<!-- 🔐 FORGOT PASSWORD MODAL -->
+<div class="modal fade" id="forgotModal">
+  <div class="modal-dialog">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5>Reset Password</h5>
+        <button class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+
+        <input type="text" id="fp_identifier"
+               class="form-control mb-2"
+               placeholder="Enter Username or Email">
+
+        <!-- 👁️ PASSWORD FIELD -->
+        <div class="input-group mb-2">
+            <input type="password" id="fp_password"
+                   class="form-control"
+                   placeholder="Enter New Password">
+            <button class="btn btn-outline-secondary"
+                    onclick="togglePassword('fp_password', this)">
+                👁️
+            </button>
+        </div>
+
+        <div id="fp-msg" style="color:red;"></div>
+
+        <small class="text-muted">
+            Enter your username/email and set a new password.
+        </small>
+
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn btn-primary" onclick="resetPassword()">
+            Update Password
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+function resetPassword() {
+    let identifier = document.getElementById("fp_identifier").value;
+    let new_password = document.getElementById("fp_password").value;
+
+    fetch("/forgot-password", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: `identifier=${encodeURIComponent(identifier)}&new_password=${encodeURIComponent(new_password)}`
+    })
+    .then(res => res.json())
+    .then(data => {
+        let msg = document.getElementById("fp-msg");
+        msg.innerText = data.message;
+
+        if (data.status === "success") {
+            msg.style.color = "green";
+
+            // ✅ CLOSE MODAL AFTER SUCCESS
+            setTimeout(() => {
+                let modal = bootstrap.Modal.getInstance(document.getElementById('forgotModal'));
+                modal.hide();
+            }, 1500);
+        } else {
+            msg.style.color = "red";
+        }
+    });
+}
+</script>
 
 
 <script>
@@ -403,6 +502,26 @@ function signupUser() {
 }
 </script>
 
+<script>
+function togglePassword(fieldId, btn) {
+    let input = document.getElementById(fieldId);
+
+    console.log("Toggle clicked"); // debug
+
+    if (!input) {
+        console.log("Input not found");
+        return;
+    }
+
+    if (input.type === "password") {
+        input.type = "text";
+        btn.innerText = "🙈";
+    } else {
+        input.type = "password";
+        btn.innerText = "👁️";
+    }
+}
+</script>
 
 </body>
 </html>

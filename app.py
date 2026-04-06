@@ -276,6 +276,30 @@ def profile():
 
     return render_template("profile.html", user=current_user)    
     
+
+@app.route("/forgot-password", methods=["POST"])
+def forgot_password():
+    try:
+        identifier = request.form.get("identifier")
+        new_password = request.form.get("new_password")
+
+        # 🔍 Find user by username OR email
+        user = User.query.filter(
+            (User.username == identifier) | (User.email == identifier)
+        ).first()
+
+        if not user:
+            return {"status": "error", "message": "User not found"}
+
+        # 🔐 Update password
+        user.password = generate_password_hash(new_password)
+        db.session.commit()
+
+        return {"status": "success", "message": "Password updated successfully"}
+
+    except Exception as e:
+        print("FORGOT ERROR:", e)
+        return {"status": "error", "message": "Something went wrong"}
     
 @app.route("/logout", methods=["GET", "POST"])
 @login_required
@@ -626,5 +650,5 @@ with app.app_context():
  
  
 if __name__ == "__main__":
-    #app.run(debug=True)
-    app.run(host="0.0.0.0", port=10000)
+    app.run(debug=True)
+    #app.run(host="0.0.0.0", port=10000)
